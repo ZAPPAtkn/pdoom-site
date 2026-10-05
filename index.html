@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090b0d" />
+  <meta name="description" content="Pip Doom monitors humanity's fear of artificial intelligence so you don't have to. The last forecast from the Department of Overreaction, Omens & Metrics." />
+  <title>P(doom) — The Last Forecast</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090b0d'/%3E%3Ccircle cx='32' cy='32' r='21' fill='%23f0e5cc' stroke='%23ff5a1f' stroke-width='4'/%3E%3Cpath d='M32 32L46 19' stroke='%23ff3b30' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23090b0d'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --ink: #090b0d;
+      --ink-2: #10151a;
+      --panel: rgba(17, 23, 29, .84);
+      --paper: #f3ead7;
+      --muted: #9aa7ae;
+      --orange: #ff5a1f;
+      --orange-hot: #ff7a18;
+      --cyan: #71e7ff;
+      --red: #ff3b30;
+      --line: rgba(255,255,255,.13);
+      --radius: 24px;
+      --shadow: 0 28px 80px rgba(0,0,0,.42);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--ink); }
+    body {
+      margin: 0;
+      color: #f5f7f8;
+      background:
+        radial-gradient(circle at 86% 5%, rgba(255, 90, 31, .14), transparent 28rem),
+        radial-gradient(circle at 8% 54%, rgba(113, 231, 255, .09), transparent 30rem),
+        var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .055;
+      z-index: 20;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    img { max-width: 100%; display: block; }
+    ::selection { background: var(--orange); color: #fff; }
+
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cyan);
+      font: 700 .76rem/1.2 "SFMono-Regular", Consolas, monospace;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 18px var(--cyan);
+    }
+
+    .topbar {
+      position: fixed;
+      z-index: 15;
+      inset: 18px 0 auto;
+      pointer-events: none;
+    }
+    .nav {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 62px;
+      padding: 9px 11px 9px 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(8, 11, 13, .74);
+      backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: 0 12px 44px rgba(0,0,0,.24);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 850; letter-spacing: -.02em; }
+    .brand-mark {
+      position: relative;
+      width: 34px; height: 34px;
+      border: 3px solid var(--paper);
+      border-radius: 50%;
+      background: var(--ink-2);
+      box-shadow: inset 0 0 0 2px rgba(255,90,31,.5);
+    }
+    .brand-mark::before {
+      content: "";
+      position: absolute;
+      left: 15px; top: 5px;
+      width: 3px; height: 14px;
+      border-radius: 3px;
+      background: var(--red);
+      transform: rotate(43deg);
+      transform-origin: 50% 100%;
+      box-shadow: 0 0 11px rgba(255,59,48,.75);
+    }
+    .brand-mark::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--paper); left: 11px; top: 18px; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a { padding: 10px 13px; color: #c9d0d4; font-size: .9rem; font-weight: 650; border-radius: 10px; }
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .nav-cta { background: var(--orange)!important; color: #130b06!important; }
+
+    .hero {
+      position: relative;
+      min-height: 100svh;
+      display: grid;
+      align-items: end;
+      isolation: isolate;
+      overflow: hidden;
+    }
+    .hero-media, .hero-media::after { position: absolute; inset: 0; }
+    .hero-media { z-index: -2; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(.9) contrast(1.05); }
+    .hero-media::after {
+      content: "";
+      background:
+        linear-gradient(90deg, rgba(6,8,10,.94) 0%, rgba(6,8,10,.77) 36%, rgba(6,8,10,.12) 72%),
+        linear-gradient(0deg, var(--ink) 0%, transparent 31%, rgba(0,0,0,.18) 100%);
+    }
+    .hero-grid { padding: 160px 0 76px; display: grid; grid-template-columns: minmax(0, 690px) 1fr; gap: 40px; align-items: end; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      margin: 20px 0 26px;
+      font-size: clamp(3.5rem, 8.2vw, 7.7rem);
+      line-height: .86;
+      letter-spacing: -.075em;
+      text-transform: uppercase;
+      max-width: 850px;
+    }
+    h1 span { display: block; color: var(--orange); text-shadow: 0 0 50px rgba(255,90,31,.22); }
+    .hero-copy { max-width: 650px; color: #c8d0d4; font-size: clamp(1.06rem, 1.8vw, 1.32rem); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 52px;
+      padding: 0 21px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .button:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.1); }
+    .button.primary { background: var(--paper); color: #111; border-color: var(--paper); }
+    .button.primary:hover { background: #fff; box-shadow: 0 12px 36px rgba(243,234,215,.18); }
+    .hero-side { justify-self: end; width: min(100%, 310px); display: grid; gap: 10px; }
+    .status-card {
+      padding: 21px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(6,8,10,.63);
+      backdrop-filter: blur(14px);
+    }
+    .status-label { color: var(--muted); font: 700 .72rem/1.2 "SFMono-Regular", Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .status-value { margin: 5px 0 1px; font-size: 2.6rem; line-height: 1; letter-spacing: -.06em; font-weight: 900; }
+    .status-note { color: #c7ced2; font-size: .86rem; }
+    .status-line { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: #d7dddf; font-size: .8rem; }
+    .status-line i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 13px var(--orange); animation: pulse 1.6s infinite; }
+    @keyframes pulse { 50% { opacity: .35; transform: scale(.7); } }
+
+    .ticker { border-block: 1px solid var(--line); background: var(--orange); color: #150b06; overflow: hidden; }
+    .ticker-track { width: max-content; display: flex; padding: 12px 0; animation: marquee 28s linear infinite; }
+    .ticker span { font: 900 .8rem/1 "SFMono-Regular", Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .ticker span::after { content: "•"; margin: 0 22px; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    section { padding: 116px 0; }
+    .section-head { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: end; margin-bottom: 54px; }
+    h2 { margin: 12px 0 0; font-size: clamp(2.5rem, 5.5vw, 5.25rem); line-height: .95; letter-spacing: -.06em; text-transform: uppercase; }
+    .section-intro { color: #aeb9bf; font-size: 1.14rem; max-width: 600px; }
+
+    .briefing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .brief-card {
+      min-height: 280px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
+      box-shadow: inset 0 1px rgba(255,255,255,.05);
+    }
+    .brief-card .number { color: var(--orange); font: 800 .78rem/1 "SFMono-Regular", Consolas, monospace; }
+    .brief-card h3 { margin: 80px 0 12px; font-size: 1.55rem; letter-spacing: -.035em; }
+    .brief-card p { margin: 0; color: #9eabb1; }
+    .brief-card:nth-child(2) { background: var(--paper); color: #101214; transform: translateY(22px); }
+    .brief-card:nth-child(2) p { color: #4e575c; }
+
+    .origin { padding-top: 142px; }
+    .origin-grid { display: grid; grid-template-columns: minmax(320px, .86fr) 1.14fr; gap: 78px; align-items: center; }
+    .portrait-wrap { position: relative; }
+    .portrait-wrap::before { content: ""; position: absolute; inset: -14px 18px 18px -14px; border: 1px solid rgba(113,231,255,.32); border-radius: 34px; }
+    .portrait {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .id-strip { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 18px; padding: 14px 16px; border-radius: 12px; background: rgba(7,9,11,.8); border: 1px solid var(--line); backdrop-filter: blur(15px); }
+    .id-strip strong { display: block; font-size: 1.1rem; }
+    .id-strip span { color: var(--cyan); font: 700 .73rem/1.3 "SFMono-Regular", Consolas, monospace; }
+    .origin-copy h2 { max-width: 730px; }
+    .origin-copy > p { color: #aeb9bf; font-size: 1.12rem; max-width: 690px; }
+    .timeline { margin-top: 36px; display: grid; }
+    .timeline-item { display: grid; grid-template-columns: 86px 1fr; gap: 18px; padding: 17px 0; border-top: 1px solid var(--line); }
+    .timeline-item time { color: var(--orange); font: 800 .75rem/1.4 "SFMono-Regular", Consolas, monospace; letter-spacing: .06em; }
+    .timeline-item strong { display: block; margin-bottom: 4px; }
+    .timeline-item p { margin: 0; color: #919fa6; }
+
+    .console-section { position: relative; }
+    .console {
+      display: grid;
+      grid-template-columns: .82fr 1.18fr;
+      overflow: hidden;
+      min-height: 620px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: linear-gradient(145deg, #11171c, #090c0f);
+      box-shadow: var(--shadow);
+    }
+    .gauge-side { padding: clamp(28px, 5vw, 58px); border-right: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between; }
+    .gauge {
+      --value: 64.8;
+      position: relative;
+      width: min(100%, 400px);
+      aspect-ratio: 1;
+      margin: 20px auto;
+      border-radius: 50%;
+      border: 16px solid #e9dec6;
+      background:
+        radial-gradient(circle at 50% 58%, #14181b 0 12%, transparent 12.5%),
+        conic-gradient(from 225deg, var(--cyan), var(--orange) 46%, var(--red) 68%, #2a3035 68% 100%);
+      box-shadow: inset 0 0 0 8px #090b0d, inset 0 0 38px #000, 0 20px 55px rgba(0,0,0,.42);
+      overflow: hidden;
+    }
+    .gauge::before { content: ""; position: absolute; inset: 21%; border-radius: 50%; background: #0d1114; border: 1px solid rgba(255,255,255,.1); }
+    .needle { position: absolute; z-index: 2; width: 5px; height: 34%; left: calc(50% - 2.5px); bottom: 50%; border-radius: 5px; background: linear-gradient(var(--red), #8b120d); transform-origin: 50% 100%; transform: rotate(calc(-128deg + (var(--value) * 2.56deg))); transition: transform .65s cubic-bezier(.16,1,.3,1); box-shadow: 0 0 18px rgba(255,59,48,.6); }
+    .gauge-center { position: absolute; z-index: 3; inset: 0; display: grid; place-content: center; text-align: center; transform: translateY(15%); }
+    .gauge-number { font-size: clamp(2.6rem, 6vw, 4.7rem); line-height: .9; font-weight: 900; letter-spacing: -.07em; }
+    .gauge-unit { color: var(--muted); font: 800 .7rem/1.2 "SFMono-Regular", Consolas, monospace; letter-spacing: .12em; }
+    .console-note { color: var(--muted); font-size: .88rem; text-align: center; }
+    .controls { padding: clamp(28px, 5vw, 58px); }
+    .controls h3 { font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.05em; margin: 12px 0 9px; }
+    .controls > p { color: #9daab0; margin-bottom: 28px; }
+    .signal-list { display: grid; gap: 9px; }
+    .signal {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 13px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      color: #eef2f3;
+      background: rgba(255,255,255,.035);
+      text-align: left;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .signal:hover { transform: translateX(4px); border-color: rgba(113,231,255,.35); background: rgba(113,231,255,.06); }
+    .signal.active { border-color: rgba(255,90,31,.58); background: rgba(255,90,31,.11); }
+    .signal-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 11px; background: #1a2228; color: var(--cyan); font-weight: 900; }
+    .signal strong { display: block; font-size: .95rem; }
+    .signal small { color: #8e9ca3; }
+    .signal b { color: var(--orange); font: 800 .76rem/1 "SFMono-Regular", Consolas, monospace; }
+    .console-log { margin-top: 20px; padding: 16px; min-height: 65px; border-radius: 14px; border: 1px dashed rgba(255,255,255,.15); color: #aab6bc; font: .78rem/1.5 "SFMono-Regular", Consolas, monospace; }
+
+    .reports-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+    .report { position: relative; overflow: hidden; min-height: 430px; border: 1px solid var(--line); border-radius: 24px; background: #12171b; }
+    .report:nth-child(1) { grid-column: span 7; }
+    .report:nth-child(2) { grid-column: span 5; }
+    .report:nth-child(3) { grid-column: span 12; min-height: 500px; }
+    .report img { width: 100%; height: 100%; object-fit: cover; transition: transform .65s cubic-bezier(.16,1,.3,1); }
+    .report:hover img { transform: scale(1.025); }
+    .report::after { content: ""; position: absolute; inset: 34% 0 0; background: linear-gradient(transparent, rgba(5,7,8,.9)); }
+    .report-copy { position: absolute; z-index: 2; left: 24px; right: 24px; bottom: 22px; }
+    .report-copy span { color: var(--orange); font: 800 .72rem/1 "SFMono-Regular", Consolas, monospace; letter-spacing: .1em; }
+    .report-copy h3 { margin: 7px 0 0; font-size: clamp(1.3rem, 3vw, 2rem); letter-spacing: -.04em; }
+
+    .badge-section { padding-top: 50px; }
+    .badge-card {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(34px, 7vw, 82px);
+      border-radius: 30px;
+      color: #0e1113;
+      background: var(--paper);
+    }
+    .badge-card::after { content: "P(DOOM)"; position: absolute; right: -18px; bottom: -47px; font-size: clamp(5rem, 16vw, 12rem); line-height: 1; font-weight: 950; letter-spacing: -.09em; color: rgba(255,90,31,.12); }
+    .badge-card .eyebrow { color: #2b616d; }
+    .badge-card .eyebrow::before { background: #2b616d; box-shadow: none; }
+    .badge-card h2 { max-width: 900px; }
+    .badge-lead { max-width: 760px; color: #455056; font-size: 1.12rem; }
+    .reasons { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 40px; }
+    .reason { min-height: 180px; padding: 20px; border-radius: 17px; border: 1px solid rgba(9,11,13,.15); background: rgba(255,255,255,.42); }
+    .reason b { display: block; margin-bottom: 28px; color: var(--orange); font: 900 .75rem/1 "SFMono-Regular", Consolas, monospace; }
+    .reason strong { display: block; margin-bottom: 7px; }
+    .reason p { margin: 0; color: #556066; font-size: .9rem; }
+    .disclaimer { position: relative; z-index: 2; margin-top: 24px; color: #606a6f; font: 700 .74rem/1.5 "SFMono-Regular", Consolas, monospace; text-transform: uppercase; letter-spacing: .045em; }
+
+    .manifesto { text-align: center; }
+    .manifesto .eyebrow { justify-content: center; }
+    .manifesto h2 { max-width: 950px; margin: 17px auto 44px; }
+    .manifesto-lines { display: grid; max-width: 920px; margin: auto; border-top: 1px solid var(--line); }
+    .manifesto-line { display: grid; grid-template-columns: 60px 1fr; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--line); text-align: left; }
+    .manifesto-line b { color: var(--orange); font: 900 .8rem/1.5 "SFMono-Regular", Consolas, monospace; }
+    .manifesto-line span { font-size: clamp(1.2rem, 2.5vw, 1.8rem); font-weight: 760; letter-spacing: -.035em; }
+
+    footer { padding: 28px 0 40px; border-top: 1px solid var(--line); }
+    .footer-grid { display: flex; justify-content: space-between; gap: 30px; align-items: center; color: #839097; font-size: .85rem; }
+    .footer-wordmark { color: #fff; font-size: 1.15rem; font-weight: 900; letter-spacing: -.035em; }
+
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1); }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-side { justify-self: start; grid-template-columns: 1fr 1fr; width: 100%; max-width: 600px; }
+      .section-head, .origin-grid, .console { grid-template-columns: 1fr; gap: 34px; }
+      .briefing-grid { grid-template-columns: 1fr 1fr; }
+      .brief-card:nth-child(2) { transform: none; }
+      .brief-card:last-child { grid-column: 1 / -1; }
+      .gauge-side { border-right: 0; border-bottom: 1px solid var(--line); }
+      .reasons { grid-template-columns: 1fr 1fr; }
+      .report:nth-child(n) { grid-column: span 12; min-height: 420px; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .topbar { inset: 8px 0 auto; }
+      .nav { min-height: 54px; border-radius: 14px; padding-left: 12px; }
+      .brand span:last-child { display: none; }
+      .nav-cta { font-size: .82rem!important; padding: 9px 11px!important; }
+      .hero-media img { object-position: 67% center; }
+      .hero-media::after { background: linear-gradient(0deg, var(--ink) 0%, rgba(6,8,10,.72) 54%, rgba(6,8,10,.36) 100%); }
+      .hero-grid { padding: 128px 0 42px; }
+      h1 { font-size: clamp(3rem, 16vw, 5.25rem); }
+      .hero-copy { font-size: 1rem; }
+      .hero-side { grid-template-columns: 1fr; }
+      section { padding: 84px 0; }
+      .section-head { grid-template-columns: 1fr; gap: 20px; margin-bottom: 34px; }
+      .briefing-grid, .reasons { grid-template-columns: 1fr; }
+      .brief-card:last-child { grid-column: auto; }
+      .brief-card { min-height: 220px; }
+      .brief-card h3 { margin-top: 50px; }
+      .origin { padding-top: 92px; }
+      .timeline-item { grid-template-columns: 64px 1fr; }
+      .gauge-side, .controls { padding: 24px 18px; }
+      .gauge { border-width: 11px; }
+      .signal { grid-template-columns: 40px 1fr; }
+      .signal b { grid-column: 2; }
+      .report:nth-child(n) { min-height: 360px; }
+      .badge-card { padding: 34px 22px; }
+      .footer-grid { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms!important; animation-iteration-count: 1!important; transition-duration: .01ms!important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="P(doom) home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>P(doom) / THE LAST FORECAST</span>
+      </a>
+      <div class="nav-links">
+        <a href="#lore">Pip's file</a>
+        <a href="#console">Panic console</a>
+        <a href="#reports">Reports</a>
+        <a class="nav-cta" href="#badge">Access badge</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-media" aria-hidden="true">
+        <img src="hero-pip-control-room.png" alt="" />
+      </div>
+      <div class="hero-grid shell">
+        <div>
+          <span class="eyebrow">D.O.O.M. internal bulletin / case 00</span>
+          <h1>The future is fine.<span>We are monitoring it aggressively.</span></h1>
+          <p class="hero-copy">Meet Pip Doom—the last junior analyst at the Department of Overreaction, Omens &amp; Metrics. Every AI update becomes a crisis. Every crisis gets a dashboard.</p>
+          <div class="actions">
+            <a class="button primary" href="#console">Open the panic console</a>
+            <a class="button" href="#lore">Read Pip's personnel file</a>
+          </div>
+        </div>
+        <aside class="hero-side" aria-label="Current forecast status">
+          <div class="status-card">
+            <div class="status-label">Official P(doom)</div>
+            <div class="status-value" id="heroValue">64.8%</div>
+            <div class="status-note">Elevated by one confident keynote.</div>
+            <div class="status-line"><i></i> Panic systems nominal</div>
+          </div>
+          <div class="status-card">
+            <div class="status-label">Human confidence</div>
+            <div class="status-value">3.1%</div>
+            <div class="status-note">Within historical range.</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="ticker" aria-label="Department alerts">
+      <div class="ticker-track">
+        <span>AI said “certainly” with suspicious confidence</span><span>AGI rescheduled again</span><span>Six fingers detected — morale restored</span><span>Humanity remains technically online</span><span>AI said “certainly” with suspicious confidence</span><span>AGI rescheduled again</span><span>Six fingers detected — morale restored</span><span>Humanity remains technically online</span>
+      </div>
+    </div>
+
+    <section id="briefing">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div><span class="eyebrow">The departmental mandate</span><h2>We don't predict the apocalypse.</h2></div>
+          <p class="section-intro">We give your anxiety a dashboard. D.O.O.M. turns vague fear of artificial intelligence into precise-looking numbers, dramatic alerts and highly shareable paperwork.</p>
+        </div>
+        <div class="briefing-grid">
+          <article class="brief-card reveal"><span class="number">01 / DETECT</span><h3>Find the signal</h3><p>A new model blinks, reasons or opens a spreadsheet. Pip marks it “potentially civilization-adjacent.”</p></article>
+          <article class="brief-card reveal"><span class="number">02 / AMPLIFY</span><h3>Remove context</h3><p>A calm technical update becomes an emergency briefing before the first quote-post can say “we are cooked.”</p></article>
+          <article class="brief-card reveal"><span class="number">03 / REPORT</span><h3>Increase the dial</h3><p>The needle goes up. Engagement follows. The apocalypse is postponed until the next product launch.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="origin" id="lore">
+      <div class="origin-grid shell">
+        <figure class="portrait-wrap reveal">
+          <img class="portrait" src="avatar-pip-doom.png" alt="Pip Doom, a glossy black raven in a probability-gauge helmet and orange safety vest" />
+          <figcaption class="id-strip"><strong>Pip Doom</strong><span>JUNIOR EXISTENTIAL RISK ASSOCIATE / GRADE Ω−1</span></figcaption>
+        </figure>
+        <div class="origin-copy reveal">
+          <span class="eyebrow">Personnel file / mostly classified</span>
+          <h2>The bird who was afraid early.</h2>
+          <p>Pip hatched beneath a server rack during a routine AI safety summit. By sunrise, three experts had predicted the end of work, two had predicted the end of art, and the catering robot had locked everyone out of the coffee machine.</p>
+          <p>D.O.O.M. hired Pip immediately. His helmet connects directly to the internet's collective fear response. Whenever a CEO says “superintelligence,” an agent schedules its own meeting, or a chatbot shows personality, the needle moves.</p>
+          <div class="timeline">
+            <div class="timeline-item"><time>DAY 001</time><div><strong>Pip joins D.O.O.M.</strong><p>Assigned one clipboard, zero authority and complete responsibility for civilization.</p></div></div>
+            <div class="timeline-item"><time>DAY 043</time><div><strong>The forecast reaches 99.9%.</strong><p>Nothing ends. Finance asks Pip to round up.</p></div></div>
+            <div class="timeline-item"><time>NOW</time><div><strong>The apocalypse keeps missing stand-up.</strong><p>Pip continues to clock in. Someone has to watch the dial.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="console-section" id="console">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div><span class="eyebrow">Interactive panic terminal</span><h2>Adjust for today's threat level.</h2></div>
+          <p class="section-intro">Select all developments currently threatening humanity. The console uses proprietary mathematics, premium gradients and no emotional regulation.</p>
+        </div>
+        <div class="console reveal">
+          <div class="gauge-side">
+            <div class="gauge" id="gauge" role="img" aria-label="P doom gauge at 64.8 percent">
+              <div class="needle"></div>
+              <div class="gauge-center"><span class="gauge-number" id="gaugeNumber">64.8</span><span class="gauge-unit">P(DOOM) / %</span></div>
+            </div>
+            <p class="console-note">Not a scientific instrument. Somehow still more honest than most forecasts.</p>
+          </div>
+          <div class="controls">
+            <span class="eyebrow">Unverified existential signals</span>
+            <h3>What did AI do now?</h3>
+            <p>Tap a signal to let the department overreact on your behalf.</p>
+            <div class="signal-list">
+              <button class="signal" data-score="8.4" data-message="MODEL OUTPUT DETECTED: It used an em dash. Human authorship compromised."><span class="signal-icon">Aa</span><span><strong>Wrote a suspiciously polished email</strong><small>Possibly empathetic. Definitely formatted.</small></span><b>+8.4</b></button>
+              <button class="signal" data-score="11.7" data-message="AUTONOMY DETECTED: Agent scheduled a follow-up without asking anyone to circle back."><span class="signal-icon">01</span><span><strong>Scheduled its own meeting</strong><small>Calendar sovereignty event.</small></span><b>+11.7</b></button>
+              <button class="signal" data-score="14.2" data-message="EXECUTIVE VOCABULARY DETECTED: “Superintelligence” used before slide 12."><span class="signal-icon">∞</span><span><strong>A CEO said “superintelligence”</strong><small>Confidence exceeded available evidence.</small></span><b>+14.2</b></button>
+              <button class="signal" data-score="-9.6" data-message="SIXTH FINGER DETECTED: Humanity granted another fiscal quarter."><span class="signal-icon">6</span><span><strong>Generated a sixth finger</strong><small>False alarm. Civilization extended.</small></span><b>−9.6</b></button>
+            </div>
+            <div class="console-log" id="consoleLog" aria-live="polite">SYSTEM READY — awaiting a reason to panic.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reports">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div><span class="eyebrow">Latest field reports</span><h2>Documenting the end of normal.</h2></div>
+          <p class="section-intro">Pip's reports preserve the moments when AI became terrifying, ordinary and mildly inconvenient—usually in that order.</p>
+        </div>
+        <div class="reports-grid">
+          <article class="report reveal"><img src="field-report-dashboard.png" alt="Pip presenting an absurdly alarming AI risk dashboard" /><div class="report-copy"><span>REPORT 014 / PRESENTATION RISK</span><h3>The model smiled. Markets remained open.</h3></div></article>
+          <article class="report reveal"><img src="field-report-replacement.png" alt="Pip carrying a box after an office robot takes his desk" /><div class="report-copy"><span>REPORT 027 / LABOR EVENT</span><h3>Automated the panic report. Lost the desk.</h3></div></article>
+          <article class="report reveal"><img src="field-report-bunker.png" alt="Pip calmly drinking coffee inside a glowing panic bunker at sunrise" /><div class="report-copy"><span>REPORT 041 / BUSINESS AS USUAL</span><h3>The world did not end before coffee.</h3></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="badge-section" id="badge">
+      <div class="shell">
+        <div class="badge-card reveal">
+          <span class="eyebrow">$PDOOM / optional access badge</span>
+          <h2>No yield. No protection. Excellent seniority.</h2>
+          <p class="badge-lead">The token is not the story. It is the badge that says you entered the control room before the next emergency memo. Holders help decide what Pip investigates, what becomes canon and how the community documents the AI panic cycle.</p>
+          <div class="reasons">
+            <div class="reason"><b>01</b><strong>Proof of early panic</strong><p>An on-chain receipt that you were worried before worrying became official policy.</p></div>
+            <div class="reason"><b>02</b><strong>Write the canon</strong><p>Vote on new incidents, characters, reports and the next irrational spike in the dial.</p></div>
+            <div class="reason"><b>03</b><strong>Earn seniority</strong><p>Status is designed around time and contribution—not merely the loudest wallet.</p></div>
+            <div class="reason"><b>04</b><strong>Own the joke</strong><p>AI fear will keep producing content. The community gets to turn it into culture.</p></div>
+          </div>
+          <p class="disclaimer">Community access concept. No promise of profit, utility delivery, apocalypse prevention or continued electricity.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="manifesto">
+      <div class="shell reveal">
+        <span class="eyebrow">The calm-down manifesto</span>
+        <h2>Fear is temporary. The screenshot is forever.</h2>
+        <div class="manifesto-lines">
+          <div class="manifesto-line"><b>01</b><span>The future is uncertain. Anyone selling certainty is already part of the bit.</span></div>
+          <div class="manifesto-line"><b>02</b><span>Every AI breakthrough deserves scrutiny—not instant mythology.</span></div>
+          <div class="manifesto-line"><b>03</b><span>Memes are field notes from a species processing change in public.</span></div>
+          <div class="manifesto-line"><b>04</b><span>If doomsday arrives, the roadmap will be considered complete.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-grid shell">
+      <div><div class="footer-wordmark">P(doom) / THE LAST FORECAST</div><div>Filed by the Department of Overreaction, Omens &amp; Metrics.</div></div>
+      <div class="mono">TRANSMISSION FREQUENCY OPENS SOON · HUMANITY STILL ONLINE</div>
+    </div>
+  </footer>
+
+  <script>
+    const base = 64.8;
+    const signals = [...document.querySelectorAll('.signal')];
+    const gauge = document.querySelector('#gauge');
+    const gaugeNumber = document.querySelector('#gaugeNumber');
+    const heroValue = document.querySelector('#heroValue');
+    const consoleLog = document.querySelector('#consoleLog');
+
+    function updateGauge(message) {
+      const adjustment = signals.filter(s => s.classList.contains('active')).reduce((sum, item) => sum + Number(item.dataset.score), 0);
+      const value = Math.min(99.9, Math.max(3.1, base + adjustment));
+      gauge.style.setProperty('--value', value.toFixed(1));
+      gaugeNumber.textContent = value.toFixed(1);
+      heroValue.textContent = value.toFixed(1) + '%';
+      gauge.setAttribute('aria-label', `P doom gauge at ${value.toFixed(1)} percent`);
+      consoleLog.textContent = message || 'SIGNAL REVOKED — probability recalculated with theatrical precision.';
+    }
+
+    signals.forEach(signal => signal.addEventListener('click', () => {
+      signal.classList.toggle('active');
+      updateGauge(signal.classList.contains('active') ? signal.dataset.message : null);
+    }));
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: .12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
